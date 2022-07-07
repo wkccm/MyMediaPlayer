@@ -11,12 +11,13 @@
 #include "qtstyles.h"
 #include "qtfunctions.h"
 
+
 IniParser* g_confile = NULL;
-char g_exec_path[256] = {0};
-char g_exec_dir[256] ={0};
-char g_run_dir[256] = {0};
-char g_conf_file[256] = {0};
-char g_log_file[256] = {0};
+char g_exec_path[256] = {};
+char g_exec_dir[256] ={};
+char g_run_dir[256] = {};
+char g_conf_file[256] = {};
+char g_log_file[256] = {};
 
 #define LOG_LEVEL  0
 
@@ -70,7 +71,7 @@ static void qLogHandler(QtMsgType type, const QMessageLogContext &ctx, const QSt
     }
 }
 
-static int load_confile()
+static void load_confile()
 {
     get_executable_path(g_exec_path, sizeof(g_exec_path));
     get_executable_dir(g_exec_dir, sizeof(g_exec_dir));
@@ -142,8 +143,49 @@ int main(int argc, char *argv[])
 
     MainWindow::instance();
 
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
+    g_mainwd->window_state = (MainWindow::window_state_enum)(g_confile->Get<int>("main_window_state", "ui"));
+    switch(g_mainwd->window_state)
+    {
+    case MainWindow::FULLSCREEN:
+        g_mainwd->showFullScreen();
+        break;
+    case MainWindow::MAXIMIZED:
+        g_mainwd->showMaximized();
+        break;
+    case MainWindow::MINIMIZED:
+        g_mainwd->showMinimized();
+        break;
+    default:
+        str = g_confile->GetValue("main_window_rect", "ui");
+        if(!str.empty())
+        {
+            int x, y, w, h;
+            x = y = w = h =0;
+            sscanf(str.c_str(), "rect(%d,%d,%d,%d)", &x, &y, &w, &h);
+            if(w && h)
+            {
+                g_mainwd->setGeometry(x, y, w, h);
+            }
+        }
+        g_mainwd->show();
+        break;
+    }
+
+    if(g_confile->Get<bool>("mv_fullscreen", "ui"))
+    {
+        g_mainwd->mv_fullscreen();
+    }
+
+    int exitcode = app.exec();
+
+    g_confile->Set<int>("main_window_state", (int)g_mainwd->window_state, "ui");
+    str = hv::asprintf("rect(%d,%d,%d,%d)", g_mainwd->x(), g_mainwd->y(), g_mainwd->width(), g_mainwd->height());
+    g_confile->SetValue("main_window_rect", str, "ui");
+
+    MainWindow::exitInstance();
+    qInfo("--------------------app end-------------------");
+    g_confile->Save();
+    SAFE_DELETE(g_confile);
+    return exitcode;
+
 }

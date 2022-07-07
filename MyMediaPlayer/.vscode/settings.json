@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "array": "cpp",
+        "deque": "cpp",
+        "iterator": "cpp",
+        "ostream": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "charconv": "cpp",
+        "mutex": "cpp",
+        "istream": "cpp",
+        "map": "cpp",
+        "stop_token": "cpp",
+        "chrono": "cpp",
+        "optional": "cpp",
+        "system_error": "cpp",
+        "valarray": "cpp",
+        "atomic": "cpp"
+    }
+}

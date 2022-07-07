@@ -14,4 +14,9 @@
 #define EMAIL           "wkccm16@163.com"
 #define WEBSITE         "https://github.com/wkccm/MyMediaPlayer.git"
 
+
+// 公司信息
+#define COMPANY_NAME    ""
+#define COMPANY_WEBSITE ""
+
 #endif // APPDEF_H

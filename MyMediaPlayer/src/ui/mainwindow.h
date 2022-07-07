@@ -4,6 +4,8 @@
 #include <QMainWindow>
 
 #include "singleton.h"
+#include "centralwidget.h"
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -41,14 +43,16 @@ public slots:
     void fullscreen();
     void onMVStyleSelected(int id);
     void mv_fullscreen();
-    void openMediaDialog(int index);
+    void openMediaDlg(int index);
 
 public:
-    QAction *actMenuBar;
+    QAction *actMenubar;
     QAction *actFullscreen;
     QAction *actMvFullscreen;
 
-    QVector<QToolBar*> toolBars;
+    QVector<QToolBar*> toolbars;
     CentralWidget *center;
 };
+
+#define g_mainwd MainWindow::instance()
 #endif // MAINWINDOW_H
