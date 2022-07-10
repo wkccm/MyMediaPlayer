@@ -7,6 +7,9 @@
 #include <QDialog>
 #include <QTabWidget>
 
+#include "hmedia.h"
+
+// 本地文件弹出窗口类
 class FileTab : public QWidget
 {
     Q_OBJECT
@@ -14,10 +17,13 @@ public:
     explicit FileTab(QWidget* parent=nullptr);
 
 public:
+    // 可编辑行文本
     QLineEdit* edit;
+    // 浏览按钮
     QPushButton* btnBrowse;
 };
 
+// 网络文件选择窗口类
 class NetworkTab:public QWidget
 {
     Q_OBJECT
@@ -28,18 +34,7 @@ public:
     QLineEdit* edit;
 };
 
-class CaptureTab:public QWidget
-{
-    Q_OBJECT
-public:
-    explicit CaptureTab(QWidget* parent = nullptr);
-
-public:
-    QComboBox* cmb;
-};
-
-#include "hmedia.h"
-
+// 对话窗口
 class HOpenMediaDlg : public QDialog
 {
     Q_OBJECT

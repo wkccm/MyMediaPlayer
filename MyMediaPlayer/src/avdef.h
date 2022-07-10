@@ -69,12 +69,11 @@ typedef enum
 {
     MEDIA_TYPE_FILE = 0,
     MEDIA_TYPE_NETWORK,
-    MEDIA_TYPE_CAPTURE,
     MEDIA_TYPE_NB,
 }media_type_e;
 
 // 默认捕获
-#define DEFAULT_MEDIA_TYPE  MEDIA_TYPE_CAPTURE
+#define DEFAULT_MEDIA_TYPE  MEDIA_TYPE_FILE
 #define MEDIA_TYPE_NONE     MEDIA_TYPE_NB
 
 // av格式

@@ -15,7 +15,9 @@
 #include <QStatusBar>
 #include <QAction>
 #include <QSignalMapper>
+#include "ffmpeg_util.h"
 
+// 单例窗口
 SINGLETON_IMPL(MainWindow)
 
 MainWindow::MainWindow(QWidget *parent)
@@ -29,20 +31,26 @@ MainWindow::~MainWindow() {
     hlogd("~MainWindow");
 }
 
+// 初始化菜单
 void MainWindow::initMenu() {
-    // Media
+    // 媒体菜单
     QMenu *mediaMenu = menuBar()->addMenu(tr("&Media"));
+    // 媒体工具栏
     QToolBar *mediaToolbar = addToolBar(tr("&Media"));
     toolbars.push_back(mediaToolbar);
-
+    // 打开文件
     QAction* actOpenFile = new QAction(QIcon(":/image/file.png"), tr(" Open File"));
+    // 设置快捷键
     actOpenFile->setShortcut(QKeySequence("Ctrl+F"));
+    // 将动作与打开媒体文件窗口连接
     connect(actOpenFile, &QAction::triggered, this, [=](){
         openMediaDlg(MEDIA_TYPE_FILE);
     });
+    // 添加到菜单
     mediaMenu->addAction(actOpenFile);
+    // 添加到工具栏
     mediaToolbar->addAction(actOpenFile);
-
+    // 网络文件同上
     QAction* actOpenNetwork = new QAction(QIcon(":/image/network.png"), tr(" Open Network"));
     actOpenNetwork->setShortcut(QKeySequence("Ctrl+N"));
     connect(actOpenNetwork, &QAction::triggered, this, [=](){
@@ -51,21 +59,14 @@ void MainWindow::initMenu() {
     mediaMenu->addAction(actOpenNetwork);
     mediaToolbar->addAction(actOpenNetwork);
 
-    QAction* actOpenCapture = new QAction(QIcon(":/image/capture.png"), tr(" Open Capture"));
-    actOpenCapture->setShortcut(QKeySequence("Ctrl+C"));
-    connect(actOpenCapture, &QAction::triggered, this, [=](){
-        openMediaDlg(MEDIA_TYPE_CAPTURE);
-    });
-    mediaMenu->addAction(actOpenCapture);
-    mediaToolbar->addAction(actOpenCapture);
-
-    // View
+    // 添加下拉栏
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
 
 #if WITH_MV_STYLE
     QToolBar *viewToolbar = addToolBar(tr("&View"));
     toolbars.push_back(viewToolbar);
 
+    // 添加16格内的布局到工具栏
     QAction *actMVS;
     QSignalMapper *smMVS = new QSignalMapper(this);
 #define VISUAL_MV_STYLE(id, row, col, label, image) \
@@ -156,14 +157,15 @@ void MainWindow::initMenu() {
     });
     viewMenu->addAction(actRside);
 
-    // Help
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->addAction(tr(" &About"), this, SLOT(about()));
 }
 
+// 初始化界面
 void MainWindow::initUI() {
+    // 设置icon
     setWindowIcon(QIcon(":/image/icon.png"));
-
+    // 设置窗口宽高
     int w = g_confile->Get<int>("main_window_width", "ui", MAIN_WINDOW_WIDTH);
     int h = g_confile->Get<int>("main_window_height", "ui", MAIN_WINDOW_HEIGHT);
     setBaseSize(w, h);
@@ -174,7 +176,7 @@ void MainWindow::initUI() {
     setCentralWidget(center);
 
     initMenu();
-
+    // 状态栏设置
     statusBar()->showMessage(tr("No Message!"));
 }
 
@@ -182,6 +184,7 @@ void MainWindow::initConnect() {
 
 }
 
+// 窗口全屏
 void MainWindow::fullscreen() {
     static QRect rcOld;
     if (isFullScreen()) {
@@ -198,6 +201,7 @@ void MainWindow::fullscreen() {
     actMenubar->setChecked(menuBar()->isVisible());
 }
 
+// 让中心区域全屏
 void MainWindow::mv_fullscreen() {
     HMultiView* mv = center->mv;
     bool is_mv_fullscreen = false;
@@ -216,12 +220,15 @@ void MainWindow::mv_fullscreen() {
     actMvFullscreen->setChecked(is_mv_fullscreen);
 }
 
+// 点击事件
 void MainWindow::keyPressEvent(QKeyEvent* e) {
+    // 设置全屏快捷键
     if (center->mv->windowType() & Qt::Window) {
         if (e->key() == Qt::Key_F12 || e->key() == Qt::Key_Escape) {
             mv_fullscreen();
         }
     }
+    // 各快捷键
     else {
         switch(e->key()) {
         case Qt::Key_F10:
@@ -241,6 +248,7 @@ void MainWindow::keyPressEvent(QKeyEvent* e) {
     }
 }
 
+// 改变事件，窗口状态调整
 void MainWindow::changeEvent(QEvent* e) {
     QMainWindow::changeEvent(e);
     if (e->type() == QEvent::ActivationChange) {
@@ -263,7 +271,7 @@ void MainWindow::changeEvent(QEvent* e) {
     }
 }
 
-#include "ffmpeg_util.h"
+
 
 
 // 软件信息定型
@@ -285,6 +293,7 @@ void MainWindow::about() {
     QMessageBox::information(this, tr("About Application"), strAbout);
 }
 
+// 行数、列数选择
 void MainWindow::onMVStyleSelected(int id) {
     int r,c;
     switch (id) {
@@ -302,6 +311,7 @@ void MainWindow::onMVStyleSelected(int id) {
     center->mv->setLayout(r,c);
 }
 
+// 打开媒体文件选择窗口
 void MainWindow::openMediaDlg(int index) {
     HOpenMediaDlg dlg(this);
     dlg.tab->setCurrentIndex(index);

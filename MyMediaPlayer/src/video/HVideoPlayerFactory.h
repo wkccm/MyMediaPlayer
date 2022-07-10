@@ -5,6 +5,7 @@
 #include "HVideoPlayer.h"
 #include "hffplayer.h"
 
+// 根据媒体类型创建播放器
 class HVideoPlayerFactory
 {
 public:
@@ -14,8 +15,6 @@ public:
         {
         case MEDIA_TYPE_FILE:
         case MEDIA_TYPE_NETWORK:
-            return new HFFPlayer;
-        case MEDIA_TYPE_CAPTURE:
             return new HFFPlayer;
         default:
             return NULL;

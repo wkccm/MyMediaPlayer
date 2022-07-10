@@ -6,9 +6,10 @@
 
 typedef struct media_s
 {
+    // 媒体文件类型
     media_type_e    type;
+    // 文件路径
     std::string     src;
-    std::string     desrc;
     int             index;
 
     media_s()

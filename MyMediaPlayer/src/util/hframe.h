@@ -104,10 +104,15 @@ public:
     int pop(HFrame* pFrame);
     void clear();
 
+    // 缓冲区大小
     int                 cache_num;
+    // 缓冲区出入数据
     FrameStats          frame_stats;
+    // 帧信息
     FrameInfo           frame_info;
+    // 帧队列
     std::deque<HFrame>  frames;
+    // 线程，可以设置锁
     std::mutex          mutex;
 };
 

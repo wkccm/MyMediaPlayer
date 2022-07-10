@@ -16,7 +16,9 @@ protected:
     void initConnect();
 
 public:
+    // 播放器标题
     QLabel *labTitle;
+    // 播放器关闭按钮
     QPushButton *btnClose;
 };
 

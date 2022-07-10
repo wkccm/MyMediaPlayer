@@ -7,7 +7,6 @@
 // 渲染类型
 enum renderer_type_e
 {
-    RENDERER_TYPE_OPENGL,
     RENDERER_TYPE_SDL2,
 };
 
@@ -20,8 +19,6 @@ public:
     {
         switch(type)
         {
-//        case RENDER_TYPE_OPENGL:
-//            return new GLWnd(parent);
         case RENDERER_TYPE_SDL2:
             return new SDL2Wnd(parent);
         default:

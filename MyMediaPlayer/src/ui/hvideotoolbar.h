@@ -13,8 +13,11 @@ public:
     explicit HVideoToolBar(QWidget *parent = nullptr);
 
 signals:
+    // 开始信号
     void sigStart();
+    // 暂停信号
     void sigPause();
+    // 停止信号
     void sigStop();
 
 public slots:
@@ -24,13 +27,15 @@ protected:
     void initConnect();
 
 public:
+    // 开始按钮
     QPushButton *btnStart;
+    // 暂停按钮
     QPushButton *btnPause;
-    QPushButton *btnPrev;
+    // 停止按钮
     QPushButton *btnStop;
-    QPushButton *btnNext;
-
+    // 播放滑动条
     QSlider     *sldProgress;
+    // 视频时长
     QLabel      *lblDuration;
 
 };

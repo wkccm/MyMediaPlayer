@@ -8,17 +8,18 @@ HVideoToolBar::HVideoToolBar(QWidget *parent) : QFrame(parent)
     initConnect();
 }
 
+// 初始化界面
 void HVideoToolBar::initUI()
 {
+    // 设定高度
     setFixedHeight(VIDEO_TOOLBAR_HEIGHT);
-
+    // 设置按钮图标大小，可备用
     QSize sz(VIDEO_TOOLBAR_ICON_WIDTH, VIDEO_TOOLBAR_ICON_HEIGHT);
-    btnStart = pushButton(QPixmap(":/image/start.png"), tr("start"));
-    btnPause = pushButton(QPixmap(":/image/pause.png"), tr("pause"));
-    btnPrev = pushButton(QPixmap(":/image/prev.png"), tr("prev"));
-    btnStop = pushButton(QPixmap(":/image/stop.png"), tr("stop"));
+    // 绑定各按钮
+    btnStart = pushButton(QPixmap(":/image/start.png"), tr("start"), sz);
+    btnPause = pushButton(QPixmap(":/image/pause.png"), tr("pause"), sz);
+    btnStop = pushButton(QPixmap(":/image/stop.png"), tr("stop"), sz);
     btnStop->setAutoDefault(true);
-    btnNext = pushButton(QPixmap(":/image/next.png"), tr("next"));
 
     sldProgress = new QSlider;
     sldProgress->setOrientation(Qt::Horizontal);
@@ -31,12 +32,8 @@ void HVideoToolBar::initUI()
     btnPause->hide();
 
     hbox->addSpacing(5);
-    hbox->addWidget(btnPrev, 0, Qt::AlignLeft);
-    btnPrev->hide();
-    hbox->addWidget(btnStop, 0, Qt::AlignLeft);
+    hbox->addWidget(btnStop, 50, Qt::AlignLeft);
     btnStop->hide();
-    hbox->addWidget(btnNext, 0, Qt::AlignLeft);
-    btnNext->hide();
 
     hbox->addSpacing(5);
     hbox->addWidget(sldProgress);
@@ -49,11 +46,13 @@ void HVideoToolBar::initUI()
 
 void HVideoToolBar::initConnect()
 {
+    // 开始和暂停互斥
     connectButtons(btnStart, btnPause);
+    // 绑定信号
     connect(btnStart, SIGNAL(clicked(bool)), this, SIGNAL(sigStart()));
     connect(btnPause, SIGNAL(clicked(bool)), this, SIGNAL(sigPause()));
     connect(btnStop, SIGNAL(clicked(bool)), this, SIGNAL(sigStop()));
-
+    // 停止时，显示开始按钮，隐藏关闭按钮
     connect(btnStop, SIGNAL(clicked(bool)), btnStart, SLOT(show()));
     connect(btnStop, SIGNAL(clicked(bool)), btnPause, SLOT(hide()));
 }

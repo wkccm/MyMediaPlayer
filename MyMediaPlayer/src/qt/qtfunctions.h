@@ -43,18 +43,6 @@ inline void loadSkin(const char* skin)
 // 注意生成qm文件
 inline void loadLang(const char* lang)
 {
-    // QTranslator *app_translator = new QTranslator(qApp);
-    // if(lang && *lang)
-    // {
-    //     app_translator->load(QString(":/lang/app_") + QString(lang) + QString(".qm"));
-    // }
-    // else
-    // {
-    //     app_translator->load(QLocale(), "app", "_", ":/lang");
-    // }
-
-    // qApp->installTranslator(app_translator);
-
     QTranslator *qt_translator = new QTranslator(qApp);
     if(lang && *lang)
     {

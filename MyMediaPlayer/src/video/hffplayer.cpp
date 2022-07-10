@@ -2,13 +2,18 @@
 #include "hlog.h"
 #include "hscope.h"
 
+
+// 默认阻塞超时时间
 #define DEFAULT_BLOCK_TIMEOUT   10
 
+// 原子锁
 std::atomic_flag HFFPlayer::s_ffmpeg_init = ATOMIC_FLAG_INIT;
 
+// 中断回调函数
 static int interrupt_callback(void* opaque) {
     if (opaque == NULL) return 0;
     HFFPlayer* player = (HFFPlayer*)opaque;
+    // 当播放器退出或播放器超时后还未播放
     if (player->quit ||
         time(NULL) - player->block_starttime > player->block_timeout) {
         hlogi("interrupt quit=%d media.src=%s", player->quit, player->media.src.c_str());
@@ -20,6 +25,7 @@ static int interrupt_callback(void* opaque) {
 HFFPlayer::HFFPlayer()
 : HVideoPlayer()
 , HThread() {
+    // 初始化参数
     fmt_opts = NULL;
     codec_opts = NULL;
     fmt_ctx = NULL;
@@ -31,21 +37,25 @@ HFFPlayer::HFFPlayer()
     block_starttime = time(NULL);
     block_timeout = DEFAULT_BLOCK_TIMEOUT;
     quit = 0;
-
+    // 由于avformat_network_init需要线程安全环境才可使用，所以需要加锁
     if (!s_ffmpeg_init.test_and_set()) {
         avformat_network_init();
-        avdevice_register_all();
+        // avdevice_register_all();
     }
 }
 
+// 析构时要先关闭媒体
 HFFPlayer::~HFFPlayer() {
     close();
 }
 
+// 打开媒体
 int HFFPlayer::open() {
+    // 文件名
     std::string ifile;
 
     AVInputFormat* ifmt = NULL;
+    // 读媒体文件源
     switch (media.type) 
     {
     case MEDIA_TYPE_FILE:
@@ -58,6 +68,7 @@ int HFFPlayer::open() {
 
     hlogi("ifile:%s", ifile.c_str());
     int ret = 0;
+    // 分配空间
     fmt_ctx = avformat_alloc_context();
     if (fmt_ctx == NULL) {
         hloge("avformat_alloc_context");
@@ -65,7 +76,7 @@ int HFFPlayer::open() {
         return ret;
     }
     defer (if (ret != 0 && fmt_ctx) {avformat_free_context(fmt_ctx); fmt_ctx = NULL;})
-
+    // 媒体类型为网络文件时，需要考虑网络传输方式
     if (media.type == MEDIA_TYPE_NETWORK) {
         if (strncmp(media.src.c_str(), "rtsp:", 5) == 0) {
             std::string str = g_confile->GetValue("rtsp_transport", "video");
@@ -94,9 +105,11 @@ int HFFPlayer::open() {
         return ret;
     }
     hlogi("stream_num=%d", fmt_ctx->nb_streams);
-
+    // 视频流
     video_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+    // 音频流
     audio_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+    // 字幕流
     subtitle_stream_index = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_SUBTITLE, -1, -1, NULL, 0);
     hlogi("video_stream_index=%d", video_stream_index);
     hlogi("audio_stream_index=%d", audio_stream_index);
@@ -115,7 +128,7 @@ int HFFPlayer::open() {
 
     AVCodecParameters* codec_param = video_stream->codecpar;
     hlogi("codec_id=%d:%s", codec_param->codec_id, avcodec_get_name(codec_param->codec_id));
-
+    // 编码方式解析
     AVCodec* codec = NULL;
     if (decode_mode != SOFTWARE_DECODE)
     {
@@ -131,7 +144,6 @@ int HFFPlayer::open() {
         codec = avcodec_find_decoder_by_name(decoder.c_str());
         if (codec == NULL) {
             hlogi("Can not find decoder %s", decoder.c_str());
-            // goto try_software_decode;
         }
         hlogi("decoder=%s", decoder.c_str());
     }
@@ -170,6 +182,7 @@ try_software_decode:
     if (ret != 0) {
         if (real_decode_mode != SOFTWARE_DECODE) {
             hlogi("Can not open hardware codec error: %d, try software codec.", ret);
+            // 硬件解析失败后再返回软件解析
             goto try_software_decode;
         }
         hloge("Can not open software codec error: %d", ret);
@@ -188,7 +201,7 @@ try_software_decode:
         return ret;
     }
 
-    dw = sw >> 2 << 2; // align = 4
+    dw = sw >> 2 << 2; 
     dh = sh;
     dst_pix_fmt = AV_PIX_FMT_YUV420P;
     std::string str = g_confile->GetValue("dst_pix_fmt", "video");
@@ -214,7 +227,7 @@ try_software_decode:
 
     hframe.w = dw;
     hframe.h = dh;
-    // ARGB
+    
     hframe.buf.resize(dw * dh * 4);
 
     if (dst_pix_fmt == AV_PIX_FMT_YUV420P) {
@@ -237,7 +250,6 @@ try_software_decode:
         linesize[0] = dw * 3;
     }
 
-    // HVideoPlayer member vars
     if (video_stream->avg_frame_rate.num && video_stream->avg_frame_rate.den) {
         fps = video_stream->avg_frame_rate.num / video_stream->avg_frame_rate.den;
     }
@@ -256,22 +268,24 @@ try_software_decode:
         }
     }
     hlogi("fps=%d duration=%lldms start_time=%lldms", fps, duration, start_time);
-
+    // 保持帧率
     HThread::setSleepPolicy(HThread::SLEEP_UNTIL, 1000 / fps);
     return ret;
 }
 
+// 关闭，释放空间，指针置空
 int HFFPlayer::close() {
+    // 输入流参数
     if (fmt_opts) {
         av_dict_free(&fmt_opts);
         fmt_opts = NULL;
     }
-
+    // 编码参数
     if (codec_opts) {
         av_dict_free(&codec_opts);
         codec_opts = NULL;
     }
-
+    // 编码结果
     if (codec_ctx) {
         avcodec_close(codec_ctx);
         avcodec_free_context(&codec_ctx);
@@ -316,8 +330,11 @@ int HFFPlayer::seek(int64_t ms) {
     return 0;
 }
 
+// 打开准备
 bool HFFPlayer::doPrepare() {
+    // 先打开
     int ret = open();
+    // 如果失败，则调用回调函数的失败情况
     if (ret != 0) {
         if (!quit) {
             error = ret;
@@ -325,14 +342,18 @@ bool HFFPlayer::doPrepare() {
         }
         return false;
     }
+    // 成功
     else {
         event_callback(HPLAYER_OPENED);
     }
     return true;
 }
 
+// 收尾工作
 bool HFFPlayer::doFinish() {
+    // 关闭，释放空间
     int ret = close();
+    // 回调函数
     event_callback(HPLAYER_CLOSED);
     return ret == 0;
 }
@@ -405,9 +426,7 @@ void HFFPlayer::doTask() {
     }
 
     if (sws_ctx) {
-        // hlogi("sws_scale w=%d h=%d data=%p", frame->width, frame->height, frame->data);
         int h = sws_scale(sws_ctx, frame->data, frame->linesize, 0, frame->height, data, linesize);
-        // hlogi("sws_scale h=%d", h);
         if (h <= 0 || h != frame->height) {
             return;
         }
@@ -416,7 +435,6 @@ void HFFPlayer::doTask() {
     if (video_time_base_num && video_time_base_den) {
         hframe.ts = frame->pts / (double)video_time_base_den * video_time_base_num * 1000;
     }
-    // hlogi("ts=%lldms", hframe.ts);
 
     push_frame(&hframe);
 }

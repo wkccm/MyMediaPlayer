@@ -14,12 +14,13 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    // 单例
     SINGLETON_DECL(MainWindow)
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+    // 窗口状态
     enum window_state_enum
     {
         NORMAL = 0,
@@ -49,7 +50,7 @@ public:
     QAction *actMenubar;
     QAction *actFullscreen;
     QAction *actMvFullscreen;
-
+    // 工具栏 
     QVector<QToolBar*> toolbars;
     CentralWidget *center;
 };
