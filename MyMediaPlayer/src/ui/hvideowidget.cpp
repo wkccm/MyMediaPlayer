@@ -65,6 +65,7 @@ HVideoWidget::HVideoWidget(QWidget* parent) :QFrame(parent)
     status = STOP;
     // 播放器对象
     pImpl_player = NULL;
+    test = NULL;
     // 从配置文件中读取fps
     fps = g_confile->Get<int>("fps", "video");
     // 调整显示比例
@@ -216,6 +217,7 @@ void HVideoWidget::initConnect()
         if (pImpl_player)
         {
             pImpl_player->seek(toolbar->sldProgress->value()*1000);
+            test->seek(toolbar->sldProgress->value() * 1000);
         }
     });
     // 时间
@@ -353,8 +355,10 @@ void HVideoWidget::start()
     {
         // 创建一个指定类型的新播放器
         pImpl_player = HVideoPlayerFactory::create(media.type);
+        test = HVideoPlayerFactory::create_audio(media.type);
         // 设置媒体文件
         pImpl_player->set_media(media);
+        test->set_media(media);
         // 设置回调函数
         pImpl_player->set_event_callback(hplayer_event_callback, this);
         // 设置标题
@@ -365,6 +369,7 @@ void HVideoWidget::start()
         updateUI();
         // 新建一个线程并开始
         int ret = pImpl_player->start();
+        int test2 = test->start();
         if (ret != 0)
         {
             onOpenFailed();
@@ -396,6 +401,11 @@ void HVideoWidget::stop() {
         // 释放空间
         SAFE_DELETE(pImpl_player);
     }
+    if(test)
+    {
+        test->stop();
+        SAFE_DELETE(test);
+    }
     // 清除上一帧
     videownd->last_frame.buf.cleanup();
     // 更新绘图
@@ -416,6 +426,10 @@ void HVideoWidget::pause() {
     if (pImpl_player) {
         pImpl_player->pause();
     }
+    if(test)
+    {
+        test->pause();
+    }
     // 定时器停止
     timer->stop();
     // 切换状态
@@ -430,6 +444,7 @@ void HVideoWidget::resume() {
     if (status == PAUSE && pImpl_player) {
         // 播放器继续
         pImpl_player->resume();
+        test->resume();
         // 定时器开始
         timer->start(1000 / (fps ? fps : pImpl_player->fps));
         // 切换状态
@@ -445,6 +460,11 @@ void HVideoWidget::restart() {
     if (pImpl_player) {
         pImpl_player->stop();
         pImpl_player->start();
+        if(test)
+        {
+            test->stop();
+            test->start();
+        }
     }
     else {
         start();

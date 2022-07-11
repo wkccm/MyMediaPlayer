@@ -359,16 +359,16 @@ bool HFFPlayer::doFinish() {
 }
 
 void HFFPlayer::doTask() {
-    // loop until get a video frame
+
     while (!quit) {
         av_init_packet(packet);
 
         fmt_ctx->interrupt_callback.callback = interrupt_callback;
         fmt_ctx->interrupt_callback.opaque = this;
         block_starttime = time(NULL);
-        //hlogi("av_read_frame");
+
         int ret = av_read_frame(fmt_ctx, packet);
-        //hlogi("av_read_frame retval=%d", ret);
+
         fmt_ctx->interrupt_callback.callback = NULL;
         if (ret != 0) {
             hlogi("No frame: %d", ret);
@@ -385,22 +385,18 @@ void HFFPlayer::doTask() {
             return;
         }
 
-        // NOTE: if not call av_packet_unref, memory leak.
         defer (av_packet_unref(packet);)
 
-        // hlogi("stream_index=%d data=%p len=%d", packet->stream_index, packet->data, packet->size);
         if (packet->stream_index != video_stream_index) {
             continue;
         }
 
-#if 1
-        // hlogi("avcodec_send_packet");
         ret = avcodec_send_packet(codec_ctx, packet);
         if (ret != 0) {
             hloge("avcodec_send_packet error: %d", ret);
             return;
         }
-        // hlogi("avcodec_receive_frame");
+
         ret = avcodec_receive_frame(codec_ctx, frame);
         if (ret != 0) {
             if (ret != -EAGAIN) {
@@ -411,18 +407,6 @@ void HFFPlayer::doTask() {
         else {
             break;
         }
-#else
-        int got_pic = 0;
-        // hlogi("avcodec_decode_video2");
-        ret = avcodec_decode_video2(codec_ctx, frame, &got_pic, packet);
-        // hlogi("avcodec_decode_video2 retval=%d got_pic=%d", ret, got_pic);
-        if (ret < 0) {
-            hloge("decoder error: %d", ret);
-            return;
-        }
-
-        if (got_pic)    break;  // exit loop
-#endif
     }
 
     if (sws_ctx) {

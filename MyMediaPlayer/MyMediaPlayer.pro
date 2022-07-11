@@ -44,6 +44,7 @@ SOURCES += \
     src/ui/rsidewidget.cpp \
     src/ui/sdl2wnd.cpp \
     src/util/hframe.cpp \
+    src/video/haudio.cpp \
     src/video/hffplayer.cpp \
 #    src/win32/hdevice.cpp
 
@@ -73,6 +74,7 @@ HEADERS += \
     src/util/sdl_util.h \
     src/video/HVideoPlayer.h \
     src/video/HVideoPlayerFactory.h \
+    src/video/haudio.h \
     src/video/hffplayer.h \
     src/video/hmedia.h \
 #    src/win32/hdevice.h

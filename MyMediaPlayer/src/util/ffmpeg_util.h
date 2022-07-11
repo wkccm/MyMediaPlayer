@@ -10,6 +10,7 @@ extern "C"
 #include "libswscale/swscale.h"
 #include "libavdevice/avdevice.h"
 #include "libavutil/pixdesc.h"
+#include "libswresample/swresample.h"
 }
 
 #endif // FFMPEG_UTIL_H

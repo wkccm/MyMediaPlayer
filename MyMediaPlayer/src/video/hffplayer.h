@@ -20,6 +20,7 @@ public:
         // 启动线程
         return HThread::start();
     }
+
     virtual int stop() {
         quit = 1;
         return HThread::stop();
@@ -48,6 +49,7 @@ private:
     int open();
     // 关闭媒体
     int close();
+
 
 public:
     // 阻塞开始时间

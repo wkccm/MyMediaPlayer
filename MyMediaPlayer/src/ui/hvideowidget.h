@@ -92,6 +92,7 @@ private:
     HMedia          media;
     // 播放器
     HVideoPlayer*   pImpl_player;
+    HVideoPlayer *test;
     // 重试间隔
     int         retry_interval;
     // 重试最大次数
